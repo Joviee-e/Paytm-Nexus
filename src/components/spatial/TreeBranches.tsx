@@ -39,15 +39,12 @@ export const TreeBranches: React.FC<TreeBranchesProps> = ({
   };
 
   return (
-    <svg className="absolute inset-0 w-full h-full pointer-events-none z-10 overflow-visible">
-      <defs>
-        {/* Crisp linear gradient for active branches */}
-        <linearGradient id="activeBranchGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.9" />
-          <stop offset="100%" stopColor="#CBD5E1" stopOpacity="0.75" />
-        </linearGradient>
-      </defs>
-
+    <svg
+      width="2500"
+      height="1900"
+      viewBox="0 0 2500 1900"
+      className="absolute inset-0 pointer-events-none z-10 overflow-visible"
+    >
       {/* 1. Primary Branches: Core -> Department Nodes */}
       {Object.entries(departmentPositions).map(([deptId, deptPos]) => {
         const isTargetActive = activeDepartmentId === deptId;

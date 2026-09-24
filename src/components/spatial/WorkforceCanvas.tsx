@@ -8,8 +8,6 @@ import {
   ZoomIn,
   ZoomOut,
   RotateCcw,
-  Maximize2,
-  Minimize2,
   Sparkles,
   GitBranch,
 } from 'lucide-react';
@@ -29,7 +27,7 @@ export const WorkforceCanvas: React.FC = () => {
 
   // Canvas Pan & Zoom State
   const [pan, setPan] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
-  const [zoom, setZoom] = useState<number>(0.9);
+  const [zoom, setZoom] = useState<number>(0.8);
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const dragStartRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
@@ -37,79 +35,81 @@ export const WorkforceCanvas: React.FC = () => {
   // Departments that have their sub-nodes expanded
   const [expandedDeptIds, setExpandedDeptIds] = useState<DepartmentId[]>([
     'payment-ops',
+    'customer-success',
     'merchant-growth',
   ]);
   const [hoveredDeptId, setHoveredDeptId] = useState<DepartmentId | null>(null);
 
-  // Virtual canvas dimensions (center is 1000, 700)
-  const canvasCenter: BranchPoint = useMemo(() => ({ x: 1000, y: 700 }), []);
+  // Virtual canvas dimensions (center is 1200, 950 in a 2500 x 1900 canvas)
+  const canvasCenter: BranchPoint = useMemo(() => ({ x: 1200, y: 950 }), []);
 
-  // Department node fixed spatial coordinates in virtual canvas space
+  // Department node coordinates with generous breathing space (radius 360px from core)
   const departmentPositions: Record<DepartmentId, BranchPoint> = useMemo(() => {
-    const cx = canvasCenter.x;
-    const cy = canvasCenter.y;
-    const radius = 290; // distance from core
-
     return {
-      'payment-ops': {
-        x: cx + radius * Math.cos((-30 * Math.PI) / 180),
-        y: cy + radius * Math.sin((-30 * Math.PI) / 180),
-      },
-      'finance-recon': {
-        x: cx + radius * Math.cos((35 * Math.PI) / 180),
-        y: cy + radius * Math.sin((35 * Math.PI) / 180),
-      },
-      'intelligence-lab': {
-        x: cx + radius * Math.cos((95 * Math.PI) / 180),
-        y: cy + radius * Math.sin((95 * Math.PI) / 180),
-      },
-      'business-ops': {
-        x: cx + radius * Math.cos((150 * Math.PI) / 180),
-        y: cy + radius * Math.sin((150 * Math.PI) / 180),
-      },
-      'merchant-growth': {
-        x: cx + radius * Math.cos((210 * Math.PI) / 180),
-        y: cy + radius * Math.sin((210 * Math.PI) / 180),
-      },
-      'customer-success': {
-        x: cx + radius * Math.cos((270 * Math.PI) / 180),
-        y: cy + radius * Math.sin((270 * Math.PI) / 180),
-      },
+      // Top: Customer Success (-90 deg)
+      'customer-success': { x: 1200, y: 590 },
+      // Top-Right: Payment Operations (-25 deg)
+      'payment-ops': { x: 1530, y: 798 },
+      // Bottom-Right: Finance & Reconciliation (35 deg)
+      'finance-recon': { x: 1495, y: 1156 },
+      // Bottom: Intelligence Lab (95 deg)
+      'intelligence-lab': { x: 1170, y: 1309 },
+      // Bottom-Left: Business Operations (150 deg)
+      'business-ops': { x: 888, y: 1130 },
+      // Top-Left: Merchant Growth (205 deg)
+      'merchant-growth': { x: 874, y: 798 },
     };
-  }, [canvasCenter]);
+  }, []);
 
-  // Compute sub-agent positions fanning outward from their department
+  // Exact, collision-free sub-agent coordinates tailored for each department's sector
   const subAgentPositions: Record<string, BranchPoint> = useMemo(() => {
-    const positions: Record<string, BranchPoint> = {};
-    const outwardRadius = 185; // distance from department node
+    return {
+      // 1. Customer Success (Sector: Top, 240° to 300°)
+      // Two clean tiers above department node (y = 590)
+      'customer-segmenter': { x: 1060, y: 440 },
+      'customer-support-agent': { x: 1340, y: 440 },
+      'churn-predictor': { x: 1060, y: 300 },
+      'retention-coordinator': { x: 1340, y: 300 },
 
-    const deptAngles: Record<DepartmentId, number> = {
-      'payment-ops': -30,
-      'finance-recon': 35,
-      'intelligence-lab': 95,
-      'business-ops': 150,
-      'merchant-growth': 210,
-      'customer-success': 270,
+      // 2. Payment Operations (Sector: Top-Right, -50° to +25°)
+      // Fanning outward to the right away from dept (x = 1530, y = 798)
+      'payment-sentinel': { x: 1750, y: 660 },
+      'failure-investigator': { x: 1980, y: 610 },
+      'payment-health-analyst': { x: 1830, y: 800 },
+      'incident-coordinator': { x: 1780, y: 940 },
+
+      // 3. Finance & Reconciliation (Sector: Bottom-Right, 20° to 75°)
+      // Fanning bottom-right away from dept (x = 1495, y = 1156)
+      'settlement-investigator': { x: 1760, y: 1110 },
+      'refund-tracker': { x: 1810, y: 1260 },
+      'financial-analyst': { x: 1670, y: 1360 },
+      'reconciliation-coordinator': { x: 1490, y: 1450 },
+
+      // 4. Intelligence Lab (Sector: Bottom, 70° to 120°)
+      // Two tiers below department node (y = 1309)
+      'anomaly-detection-engine': { x: 930, y: 1480 },
+      'customer-intelligence-engine': { x: 1170, y: 1495 },
+      'insight-generator': { x: 1410, y: 1480 },
+      'revenue-forecasting-engine': { x: 930, y: 1630 },
+      'merchant-profile-engine': { x: 1170, y: 1645 },
+      'model-evaluation-engine': { x: 1410, y: 1630 },
+
+      // 5. Business Operations (Sector: Bottom-Left, 115° to 180°)
+      // Fanning bottom-left away from dept (x = 888, y = 1130)
+      'daily-briefing-agent': { x: 888, y: 1380 },
+      'task-coordinator': { x: 700, y: 1320 },
+      'document-assistant': { x: 590, y: 1200 },
+      'operations-coordinator': { x: 580, y: 1050 },
+
+      // 6. Merchant Growth (Sector: Top-Left, 180° to 240°)
+      // Fanning top-left away from dept (x = 874, y = 798)
+      'revenue-forecaster': { x: 630, y: 920 },
+      'opportunity-scout': { x: 560, y: 798 },
+      'business-analyst': { x: 610, y: 660 },
+      'campaign-strategist': { x: 720, y: 530 },
+      'growth-coordinator': { x: 910, y: 460 },
     };
-
-    departments.forEach((dept) => {
-      const deptPos = departmentPositions[dept.id];
-      const baseAngle = (deptAngles[dept.id] * Math.PI) / 180;
-      const count = dept.agentIds.length;
-      const arcSpread = Math.PI * 0.75; // fan span
-
-      dept.agentIds.forEach((agentId, index) => {
-        const offset = (index - (count - 1) / 2) * (arcSpread / Math.max(count - 1, 1));
-        const angle = baseAngle + offset;
-        positions[agentId] = {
-          x: deptPos.x + outwardRadius * Math.cos(angle),
-          y: deptPos.y + outwardRadius * Math.sin(angle),
-        };
-      });
-    });
-
-    return positions;
-  }, [departments, departmentPositions]);
+  }, []);
 
   // Map of departmentId to agentIds
   const departmentAgentMap = useMemo(() => {
@@ -133,23 +133,23 @@ export const WorkforceCanvas: React.FC = () => {
 
   // Zoom handlers
   const handleZoom = useCallback((delta: number) => {
-    setZoom((prev) => Math.min(Math.max(prev + delta, 0.45), 2.2));
+    setZoom((prev) => Math.min(Math.max(prev + delta, 0.4), 2.0));
   }, []);
 
   const handleResetView = useCallback(() => {
     if (containerRef.current) {
       const { clientWidth, clientHeight } = containerRef.current;
-      setZoom(0.9);
+      const targetZoom = clientWidth < 900 ? 0.6 : 0.8;
+      setZoom(targetZoom);
       setPan({
-        x: clientWidth / 2 - canvasCenter.x * 0.9,
-        y: clientHeight / 2 - canvasCenter.y * 0.9,
+        x: clientWidth / 2 - canvasCenter.x * targetZoom,
+        y: clientHeight / 2 - canvasCenter.y * targetZoom,
       });
     }
   }, [canvasCenter]);
 
   // Mouse pan handlers
   const handleMouseDown = (e: React.MouseEvent) => {
-    // Only drag with left mouse button on background
     if (e.button !== 0) return;
     setIsDragging(true);
     dragStartRef.current = { x: e.clientX - pan.x, y: e.clientY - pan.y };
@@ -171,7 +171,7 @@ export const WorkforceCanvas: React.FC = () => {
   const handleWheel = (e: React.WheelEvent) => {
     e.preventDefault();
     const zoomFactor = e.deltaY < 0 ? 0.08 : -0.08;
-    setZoom((prev) => Math.min(Math.max(prev + zoomFactor, 0.45), 2.2));
+    setZoom((prev) => Math.min(Math.max(prev + zoomFactor, 0.4), 2.0));
   };
 
   // Toggle department expansion
@@ -246,7 +246,7 @@ export const WorkforceCanvas: React.FC = () => {
           >
             <GitBranch className="w-3.5 h-3.5" />
             <span>
-              {expandedDeptIds.length === departments.length ? 'Collapse Tree' : 'Expand All'}
+              {expandedDeptIds.length === departments.length ? 'Collapse Tree' : 'Expand All Skills'}
             </span>
           </button>
         </div>
@@ -287,8 +287,8 @@ export const WorkforceCanvas: React.FC = () => {
         className="absolute origin-top-left"
         style={{
           transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
-          width: '2000px',
-          height: '1400px',
+          width: '2500px',
+          height: '1900px',
         }}
       >
         {/* SVG Tree Connecting Branches */}
