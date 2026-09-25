@@ -1,6 +1,6 @@
 import React from 'react';
 import { NexusProvider } from './context/NexusContext';
-import { WorkforceCanvas } from './components/spatial/WorkforceCanvas';
+import { SkillTreeMap } from './components/skilltree/SkillTreeMap';
 import { AgentWorkspace } from './components/spatial/AgentWorkspace';
 import { WorkflowModal } from './components/spatial/WorkflowModal';
 import { DemoDock } from './components/spatial/DemoDock';
@@ -9,8 +9,8 @@ import { Toast } from './components/spatial/Toast';
 const NexusSpatialApp: React.FC = () => {
   return (
     <div className="relative w-screen h-screen overflow-hidden bg-[#070A12] text-slate-100 font-sans select-none">
-      {/* Primary Spatial Intelligence Workforce Canvas */}
-      <WorkforceCanvas />
+      {/* Primary view: the SkillTree-style workforce map */}
+      <SkillTreeMap />
 
       {/* Focused Agent Workspace Overlay (when an agent node is clicked) */}
       <AgentWorkspace />
