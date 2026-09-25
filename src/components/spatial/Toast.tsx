@@ -22,7 +22,7 @@ export const Toast: React.FC = () => {
 
   return (
     <AnimatePresence>
-      <div className="fixed top-6 right-6 z-50 pointer-events-none select-none max-w-sm">
+      <div className="fixed top-[88px] left-1/2 -translate-x-1/2 z-50 pointer-events-none select-none w-max max-w-[min(90vw,420px)]">
         <motion.div
           className="pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl bg-[#0E1528]/95 border border-white/12 shadow-[0_15px_35px_rgba(0,0,0,0.6)] backdrop-blur-xl text-xs text-slate-200"
           initial={{ opacity: 0, y: -10, scale: 0.95 }}

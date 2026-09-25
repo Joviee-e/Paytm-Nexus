@@ -23,7 +23,7 @@ export const DemoDock: React.FC = () => {
     openWorkflow,
   } = useNexus();
 
-  const [isExpanded, setIsExpanded] = useState<boolean>(true);
+  const [isExpanded, setIsExpanded] = useState<boolean>(false);
 
   const demoOptions: { id: DemoState; label: string; key: string; icon: React.ReactNode; description: string }[] = [
     {
@@ -70,82 +70,67 @@ export const DemoDock: React.FC = () => {
     },
   ];
 
+  const current = demoOptions.find((o) => o.id === demoState);
+
   return (
-    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 select-none flex flex-col items-center">
-      {/* Floating Pill Controller */}
-      <div className="flex items-center gap-1.5 p-1 rounded-xl bg-[#141519] border border-white/20 shadow-2xl">
-        <button
-          onClick={() => setIsExpanded(!isExpanded)}
-          className="px-2.5 py-1 rounded-lg flex items-center gap-1.5 text-xs font-mono font-semibold text-slate-300 hover:text-white hover:bg-white/5 transition-colors"
-          title="Toggle Scenario Switcher"
-        >
-          <Sliders className="w-3.5 h-3.5 text-white" />
-          <span className="hidden sm:inline">Scenarios</span>
-          {isExpanded ? (
-            <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
-          ) : (
-            <ChevronUp className="w-3.5 h-3.5 text-slate-500" />
-          )}
-        </button>
-
-        {/* Workflow trigger */}
-        <button
-          onClick={openWorkflow}
-          className="px-2.5 py-1 rounded-lg text-slate-300 hover:text-white hover:bg-white/5 text-xs font-mono font-medium flex items-center gap-1.5 transition-colors border-l border-white/10"
-          title="Open Workflow Timeline (W)"
-        >
-          <GitMerge className="w-3.5 h-3.5 text-white" />
-          <span className="hidden md:inline">Workflow Flow</span>
-        </button>
-
-        {/* Reset view */}
-        <button
-          onClick={returnToWorkforceMap}
-          className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
-          title="Close Panels (ESC)"
-        >
-          <RotateCcw className="w-3.5 h-3.5" />
-        </button>
-      </div>
-
-      {/* Expanded Scenario Bar */}
+    <div className="fixed bottom-3 left-3 sm:left-5 z-40 select-none flex flex-col items-start">
       <AnimatePresence>
         {isExpanded && (
           <motion.div
-            className="mt-2 flex flex-wrap items-center justify-center gap-1 p-1.5 rounded-xl bg-[#121317] border border-white/15 shadow-2xl max-w-[95vw]"
-            initial={{ opacity: 0, y: 10, scale: 0.96 }}
+            className="mb-2 w-[240px] p-1.5 rounded-xl bg-[#0f1219]/95 border border-white/10 shadow-2xl backdrop-blur"
+            initial={{ opacity: 0, y: 8, scale: 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 10, scale: 0.96 }}
-            transition={{ duration: 0.15 }}
+            exit={{ opacity: 0, y: 8, scale: 0.97 }}
+            transition={{ duration: 0.16 }}
           >
+            <div className="px-2 pt-1 pb-1.5 text-[9.5px] font-mono uppercase tracking-[0.18em] text-slate-500">
+              Demo scenarios
+            </div>
             {demoOptions.map((opt) => {
               const isActive = demoState === opt.id;
               return (
                 <button
                   key={opt.id}
                   onClick={() => setDemoState(opt.id)}
-                  className={`px-2.5 py-1 rounded-lg text-xs font-mono font-medium flex items-center gap-1.5 transition-all ${
-                    isActive
-                      ? 'bg-white text-black font-bold border border-white shadow-md'
-                      : 'text-slate-300 hover:text-white hover:bg-white/5 border border-white/10'
+                  className={`w-full px-2 py-1.5 rounded-lg text-[12px] flex items-center gap-2 text-left transition-colors ${
+                    isActive ? 'bg-white/10 text-white' : 'text-slate-400 hover:text-white hover:bg-white/5'
                   }`}
                   title={opt.description}
                 >
-                  <span>{opt.icon}</span>
-                  <span>{opt.label}</span>
-                  <span
-                    className={`hidden sm:inline text-[9px] px-1 py-0.2 rounded font-mono ${
-                      isActive ? 'bg-black/15 text-black' : 'bg-white/10 text-slate-400'
-                    }`}
-                  >
-                    [{opt.key}]
-                  </span>
+                  <span className="shrink-0">{opt.icon}</span>
+                  <span className="flex-1">{opt.label.replace(/^\d\.\s*/, '')}</span>
+                  <kbd className="text-[9.5px] font-mono text-slate-500 border border-white/10 rounded px-1">{opt.key}</kbd>
                 </button>
               );
             })}
+            <div className="mt-1 pt-1 border-t border-white/5 flex">
+              <button
+                onClick={openWorkflow}
+                className="flex-1 px-2 py-1.5 rounded-lg text-[11.5px] text-slate-400 hover:text-white hover:bg-white/5 flex items-center gap-1.5"
+              >
+                <GitMerge className="w-3.5 h-3.5" /> Workflow timeline
+              </button>
+              <button
+                onClick={returnToWorkforceMap}
+                className="px-2 py-1.5 rounded-lg text-slate-500 hover:text-white hover:bg-white/5"
+                title="Close panels (Esc)"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
+
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="h-9 px-3 rounded-full flex items-center gap-2 text-[12px] text-slate-300 hover:text-white bg-[#0f1219]/90 border border-white/10 hover:border-white/25 shadow-xl transition-colors"
+        title="Demo scenarios (keys 1-6)"
+      >
+        <Sliders className="w-3.5 h-3.5" />
+        <span className="hidden sm:inline">{current ? current.label.replace(/^\d\.\s*/, '') : 'Scenarios'}</span>
+        {isExpanded ? <ChevronDown className="w-3.5 h-3.5 text-slate-500" /> : <ChevronUp className="w-3.5 h-3.5 text-slate-500" />}
+      </button>
     </div>
   );
 };
